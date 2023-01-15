@@ -142,8 +142,7 @@ class ConvNet(nn.Module):
         #    return p,z
     
 class ConvNetVis(nn.Module):
-    ''' 方便可视化，特征提取器输出2-d特征
-    '''
+
     def __init__(self, imdim=3):
         super(ConvNetVis, self).__init__()
 
