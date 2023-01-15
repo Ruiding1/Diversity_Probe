@@ -1,4 +1,4 @@
-''' Digit 实验
+''' Digit
 '''
 import torch
 import torch.nn.functional as F
@@ -36,7 +36,7 @@ class myTensorDataset(Dataset):
 HOME = os.environ['HOME']
 
 def resize_imgs(x, size):
-    ''' 目前只能处理单通道 
+    '''
         x [n, 28, 28]
         size int
     '''
@@ -67,7 +67,7 @@ def load_mnist(split='train', translate=None, twox=False, ntr=None, autoaug=None
     if ntr is not None:
         x, y = x[0:ntr], y[0:ntr]
     
-    # 如果没有数据增强
+
     if (translate is None) and (autoaug is None):
         dataset = TensorDataset(x, y)
         return dataset
@@ -75,7 +75,7 @@ def load_mnist(split='train', translate=None, twox=False, ntr=None, autoaug=None
         dataset = myTensorDataset(x, y, transform=translate, twox=twox)
         return dataset
 
-    # 数据增强管道
+
     transform = [transforms.ToPILImage()]
     if translate is not None:
         transform.append(transforms.RandomAffine(0, [translate, translate]))

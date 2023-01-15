@@ -129,12 +129,13 @@ def experiment(gpu, data, ntr, tgt_epochs, nbatch, batchsize, lr, lr_scheduler, 
             momentum=0.9,
             weight_decay=0.0005,
             nesterov=True)
-    # 开始训练
+
     cls_criterion = nn.CrossEntropyLoss()
     global_best_acc = 0
     g1_net, g1_opt, g2_net, g2_opt = get_generator()
     best_acc = 0
 
+    ####  Train #########
     for epoch in range(tgt_epochs):
         t1 = time.time()
 
