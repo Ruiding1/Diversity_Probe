@@ -46,7 +46,7 @@ def evaluate(net, teloader):
             p1 = p1.argmax(dim=1)
             ps.append(p1.detach().cpu().numpy())
             ys.append(y1.numpy())
-    # 计算评价指标
+
     ps = np.concatenate(ps)
     ys = np.concatenate(ys)
     acc = np.mean(ys == ps) * 100
@@ -55,7 +55,6 @@ def evaluate(net, teloader):
 def evaluate_digit_save(gpu, modelpath, svpath, channels=3, batchsize=128):
     os.environ['CUDA_VISIBLE_DEVICES'] = gpu
 
-    # 加载模型
     if channels == 3:
         cls_net = mnist_net.ConvNet().cuda()
     elif channels == 1:
@@ -64,7 +63,7 @@ def evaluate_digit_save(gpu, modelpath, svpath, channels=3, batchsize=128):
     saved_weight = torch.load(modelpath)
     cls_net.load_state_dict(saved_weight)
     cls_net.eval()
-    # 测试
+
     str2fun = {
         'mnist': data_loader.load_mnist,
         'svhn': data_loader.load_svhn,
