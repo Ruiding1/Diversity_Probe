@@ -2,7 +2,7 @@
 
 Pytorch implementation for solving single domain generalization in a synthetic samples manner by incorporating the correlation measure and the probe mechanism.
 
-![approach](files\approach.png)
+![approach](https://github.com/Ruiding1/Diversity_Probe/blob/main/files/approach.png)
 
 ## Requirements
 
