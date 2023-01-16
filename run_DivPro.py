@@ -39,8 +39,9 @@ HOME = os.environ['HOME']
 @click.option('--w_noise', type=float, default=0.2, help='w_noise')
 @click.option('--r_domain', type=float, default=80.0, help='r_domain')
 @click.option('--dir', type=str, default=None, help='storage directory')
+@click.option('--eval', type=bool, default=False, help='evaluation')
 def experiment(gpu, data, ntr, tgt_epochs, nbatch, batchsize, lr, lr_scheduler, svroot, ckpt, \
-               w_linear, n_net, w_noise, r_domain, dir):
+               w_linear, n_net, w_noise, r_domain, dir, eval):
 
     settings = locals().copy()
     print(settings)
@@ -130,6 +131,12 @@ def experiment(gpu, data, ntr, tgt_epochs, nbatch, batchsize, lr, lr_scheduler, 
             weight_decay=0.0005,
             nesterov=True)
 
+    ####  Evaluation ########
+    if eval is True:
+        model_path =  './models_pth/SRC_net_digits.pth'
+        rst = evaluate_digit_save(gpu, model_path, file_n, batchsize=batchsize)
+        print('Comparison result (in %) on digits')
+
     cls_criterion = nn.CrossEntropyLoss()
     global_best_acc = 0
     g1_net, g1_opt, g2_net, g2_opt = get_generator()
@@ -146,15 +153,15 @@ def experiment(gpu, data, ntr, tgt_epochs, nbatch, batchsize, lr, lr_scheduler, 
         for i, (x, y) in enumerate(trloader):
             x, y = x.cuda(), y.cuda()
 
-            x_final_style = g1_net(x)
-            x_mix_1_x_inpainter = g2_net(x)
+            x_probe = g1_net(x)
+            x_trace = g2_net(x)
 
-            x_final_style_1 = x_final_style * (1. - w_linear) + x * w_linear
-            x_final_style_1 = torch.clamp(x_final_style_1, -1, 1)
+            x_final = x_probe * (1. - w_linear) + x * w_linear
+            x_final = torch.clamp(x_final, -1, 1)
 
             ####  Train Mask_Model ########
             p1_src, z1_src = src_net(x, mode='train')
-            p_tgt, z_tgt = src_net(x_final_style_1.detach(), mode='train')
+            p_tgt, z_tgt = src_net(x_final.detach(), mode='train')
 
             src_cls_loss = cls_criterion(p1_src, y)
             tgt_cls_loss = cls_criterion(p_tgt, y)
@@ -166,26 +173,25 @@ def experiment(gpu, data, ntr, tgt_epochs, nbatch, batchsize, lr, lr_scheduler, 
             src_opt.step()
 
             ##### Trian Trace_Module ########
-            msr_Loss = (x_final_style.detach() - x_mix_1_x_inpainter).abs().mean( [1, 2, 3]).sum() / x_final_style.detach().abs().mean([1, 2, 3]).sum()
-            msr_Loss_adv_reg = (x_final_style.detach() - x_mix_1_x_inpainter).abs().mean( [1, 2, 3]).sum() / x_mix_1_x_inpainter.abs().mean([1, 2, 3]).sum()
+            L_ep = (x_probe.detach() - x_trace).abs().mean( [1, 2, 3]).sum() / x_probe.detach().abs().mean([1, 2, 3]).sum() \
+                       + (x_probe.detach() - x_trace).abs().mean( [1, 2, 3]).sum() / x_trace.abs().mean([1, 2, 3]).sum()
 
-            loss = msr_Loss + msr_Loss_adv_reg
+            loss = L_ep
 
             g2_opt.zero_grad()
             loss.backward()
             g2_opt.step()
 
             ####  Trian Probe_Module ########
-            x_mix_1_x_inpainter = g2_net(x)
+            x_trace = g2_net(x)
 
-            msr_Loss_adv = (x_final_style - x_mix_1_x_inpainter.detach()).abs().mean([1, 2, 3]).sum() / x_final_style.abs().mean([1, 2, 3]).sum()
-            msr_Loss_adv_reg = (x_final_style - x_mix_1_x_inpainter.detach()).abs().mean([1, 2, 3]).sum() / x_mix_1_x_inpainter.detach().abs().mean([1, 2, 3]).sum()
+            L_ep_adv = (x_probe - x_trace.detach()).abs().mean([1, 2, 3]).sum() / x_probe.abs().mean([1, 2, 3]).sum() + (x_probe - x_trace.detach()).abs().mean([1, 2, 3]).sum() / x_trace.detach().abs().mean([1, 2, 3]).sum()
 
-            msr__reg = 0
-            if (x_final_style.detach().abs().mean([1, 2, 3]).sum() - x.detach().abs().mean([1, 2, 3]).sum()).abs() - r_domain > 0:
-                msr__reg = (x_final_style.abs().mean([1, 2, 3]).sum() - x.detach().abs().mean([1, 2, 3]).sum()).abs()
+            L_reg = 0
+            if (x_probe.detach().abs().mean([1, 2, 3]).sum() - x.detach().abs().mean([1, 2, 3]).sum()).abs() - r_domain > 0:
+                L_reg = (x_probe.abs().mean([1, 2, 3]).sum() - x.detach().abs().mean([1, 2, 3]).sum()).abs()
 
-            loss = - msr_Loss_adv - msr_Loss_adv_reg + msr__reg
+            loss = - L_ep_adv + L_reg
 
             g1_opt.zero_grad()
             loss.backward()
@@ -212,9 +218,9 @@ def experiment(gpu, data, ntr, tgt_epochs, nbatch, batchsize, lr, lr_scheduler, 
 
         l_list = []
         l_list.append(make_grid(x[0:10].detach().cpu(), 1, 2, pad_value=128))
-        l_list.append(make_grid(x_final_style[0:10].detach().cpu(), 1, 2, pad_value=128))
-        l_list.append(make_grid(x_final_style_1[0:10].detach().cpu(), 1, 2, pad_value=128))
-        l_list.append(make_grid(x_mix_1_x_inpainter[0:10].detach().cpu(), 1, 2, pad_value=128))
+        l_list.append(make_grid(x_probe[0:10].detach().cpu(), 1, 2, pad_value=128))
+        l_list.append(make_grid(x_final[0:10].detach().cpu(), 1, 2, pad_value=128))
+        l_list.append(make_grid(x_trace[0:10].detach().cpu(), 1, 2, pad_value=128))
 
         rst = make_grid(torch.stack(l_list), len(l_list), pad_value=128)
         PIL_img = transforms.ToPILImage()(rst.float())
