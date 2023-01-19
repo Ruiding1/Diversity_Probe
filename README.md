@@ -26,7 +26,7 @@ cd ..
 
 ## Evaluating the model
 
-Pretrained task models are available at this [link](https://pan.baidu.com/s/1GkzRIjz25vEs6uQ1hjcjaA )[BaiDuYunDisk] and its extracted code:`xcl3`. Download and extract them in the `models_pth` directory.
+Pretrained task models are available at this [link](https://pan.baidu.com/s/1gnq1xb9x7vXwTwMTeao4eA )[BaiDuYunDisk] and its extracted code:`dp46`. Download and extract them in the `models_pth` directory.
 
 In `runDivPro.py`:
 
