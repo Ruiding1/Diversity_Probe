@@ -159,7 +159,7 @@ def experiment(gpu, data, ntr, tgt_epochs, nbatch, batchsize, lr, lr_scheduler, 
             x_final = x_probe * (1. - w_linear) + x * w_linear
             x_final = torch.clamp(x_final, -1, 1)
 
-            ####  Train Mask_Model ########
+            ####  Train ask_Model ########
             p1_src, z1_src = src_net(x, mode='train')
             p_tgt, z_tgt = src_net(x_final.detach(), mode='train')
 
