@@ -1,6 +1,6 @@
-# Diversity_Probe
+# Unsupervised_Diversity_Probe
 
-Pytorch implementation for solving single domain generalization in a synthetic samples manner by incorporating the correlation measure and the probe mechanism.
+Pytorch implementation of Single Domain Generalization via Unsupervised Diversity Probe.
 
 ![approach](approach.png)
 
