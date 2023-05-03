@@ -68,6 +68,7 @@ def experiment(gpu, data, ntr, tgt_epochs, nbatch, batchsize, lr, lr_scheduler, 
         transforms.Normalize([0.5] * 3, [0.5] * 3)
     ])
     train_transform = transforms.Compose([
+        transforms.RandomResizedCrop((32, 32), (0.8, 1.0))
         transforms.Resize(image_size),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
     ])
@@ -159,7 +160,7 @@ def experiment(gpu, data, ntr, tgt_epochs, nbatch, batchsize, lr, lr_scheduler, 
             x_final = x_probe * (1. - w_linear) + x * w_linear
             x_final = torch.clamp(x_final, -1, 1)
 
-            ####  Train ask_Model ########
+            ####  Train Task_Model ########
             p1_src, z1_src = src_net(x, mode='train')
             p_tgt, z_tgt = src_net(x_final.detach(), mode='train')
 
@@ -172,7 +173,7 @@ def experiment(gpu, data, ntr, tgt_epochs, nbatch, batchsize, lr, lr_scheduler, 
             loss.backward()
             src_opt.step()
 
-            ##### Trian Trace_Module ########
+            ##### Trian Auxiliary_Module ########
             L_ep = (x_probe.detach() - x_trace).abs().mean( [1, 2, 3]).sum() / x_probe.detach().abs().mean([1, 2, 3]).sum() \
                        + (x_probe.detach() - x_trace).abs().mean( [1, 2, 3]).sum() / x_trace.abs().mean([1, 2, 3]).sum()
 
