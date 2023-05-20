@@ -69,7 +69,6 @@ def experiment(gpu, data, ntr, tgt_epochs, nbatch, batchsize, lr, lr_scheduler, 
     ])
     train_transform = transforms.Compose([
         transforms.RandomResizedCrop((32, 32), (0.8, 1.0)),
-        transforms.Resize(image_size),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
     ])
 
