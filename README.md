@@ -1,4 +1,4 @@
-# Unsupervised_Diversity_Probe
+# Diversity_Probe
 
 Pytorch implementation of Single Domain Generalization via Unsupervised Diversity Probe.
 
