@@ -1,4 +1,4 @@
-# Diversity_Probe
+# Diversity_Probe (ACM MM'2023)
 
 Pytorch implementation of Single Domain Generalization via Unsupervised Diversity Probe.
 
